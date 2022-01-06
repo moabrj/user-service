@@ -1,22 +1,27 @@
 package com.moab.works.userservice.model;
 
 
+import java.util.Set;
+
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
-@Document(collection = "Users")
+@Document(collection = "user")
 public class User {
 	
 	@Id
-	private String id;
+	private ObjectId id;
 	private String name;
 	private String email; 	
 	private String phone;
 	private String address;
 	private String password;
-	private Profile profile;
+	@DBRef
+	private Set<Role> role;
 	
 }
