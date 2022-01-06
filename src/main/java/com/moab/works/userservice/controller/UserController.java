@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
@@ -75,16 +78,14 @@ public class UserController {
 	//@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	@GetMapping("/search/{name}")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Map<String, Object>> getAllUsersWithName(
+	public ResponseEntity<Page<User>> getAllUsersWithName(
 			@PathVariable(required = false) String name,
 		    @RequestParam(defaultValue = "0") int page,
 		    @RequestParam(defaultValue = "3") int size){
 		
-		Map<String, Object> response = userService.getAllUsersWithName(name, page, size);
-		if(response != null) {
-			return new ResponseEntity<>(response, HttpStatus.OK);
-		}
-		return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+		Pageable pageable = PageRequest.of(page, size);
+		
+		return ResponseEntity.ok(userService.getAllUsersWithName(name, pageable));
 	}
 	
 }

@@ -2,23 +2,18 @@ package com.moab.works.userservice.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,6 +32,8 @@ public class ImplUserService implements UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private RoleRepository roleRepository;
+	@Autowired
+	private MongoTemplate mongoTemplate; 
 
 	@Override
 	public List<User> getAllUsers() {
@@ -54,7 +51,13 @@ public class ImplUserService implements UserService {
 		existing.ifPresent(it-> {throw new IllegalArgumentException("user already exists: " + it.getEmail());});
 		
 		user.setPassword(encoder.encode(user.getPassword()));
-	    Role userRole = roleRepository.findByRole("USER");
+		
+		String role = "USER";
+		List<Role> roles = user.getRole().stream().collect(Collectors.toList());
+		if(!roles.isEmpty())
+			role = roles.get(0).getRole();
+			
+	    Role userRole = roleRepository.findByRole(role);
 	    user.setRole(new HashSet<>(Arrays.asList(userRole)));
 		return userRepository.save(user);
 	}
@@ -65,31 +68,28 @@ public class ImplUserService implements UserService {
 		return userRepository.save(user);
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
+	@Override
 	public void deleteUser(String id) {
 		userRepository.deleteById(id);
 	}
 	
 	@Override
-	public Map<String, Object> getAllUsersWithName(String name, int page, int size){
-		
-		List<User> users = new ArrayList<>();
-		Pageable paging = PageRequest.of(page, size);
-		Page<User> pageTuts = userRepository.search(name, paging);
-	    users = pageTuts.getContent();
-	      
-	    if (users.isEmpty()) {
-	    	return null;
-	    }
-  
-	    Map<String, Object> response = new HashMap<>();
-	    response.put("users", users);
-	    response.put("currentPage", pageTuts.getNumber());
-	    response.put("totalItems", pageTuts.getTotalElements());
-	    response.put("totalPages", pageTuts.getTotalPages());
-		
-	    return response;
-	    
+	public Page<User> getAllUsersWithName(String name, Pageable pageable){
+		var query = new Query().with(pageable);
+        final List<Criteria> criteria = new ArrayList<>();
+
+        if (name != null && !name.isBlank())
+            criteria.add(Criteria.where("name").regex(name, "i"));
+        
+        if (!criteria.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteria.toArray(new Criteria[0])));
+        }
+
+        return PageableExecutionUtils.getPage(
+                mongoTemplate.find(query, User.class),
+                pageable,
+                () -> mongoTemplate.count(query.skip(0).limit(0), User.class)
+        );
 	}
 
 	@Override
@@ -97,15 +97,4 @@ public class ImplUserService implements UserService {
 		return userRepository.findByEmail(email);
 	}
 
-	@Override
-	public User createUser(User user, int x) {
-		Optional<User> existing = userRepository.findByEmail(user.getEmail()); //username is setted as email
-		existing.ifPresent(it-> {throw new IllegalArgumentException("user already exists: " + it.getEmail());});
-		
-		user.setPassword(encoder.encode(user.getPassword()));
-	    Role userRole = roleRepository.findByRole("ADMIN");
-	    user.setRole(new HashSet<>(Arrays.asList(userRole)));
-		return userRepository.save(user);
-	}
-	
 }

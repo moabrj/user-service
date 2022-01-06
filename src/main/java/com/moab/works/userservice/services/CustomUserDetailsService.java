@@ -19,10 +19,6 @@ public class CustomUserDetailsService implements UserDetailsService{
 	
 	@Autowired
 	private UserService userService;
-//	@Autowired
-//	private RoleRepository roleRepository;
-//	@Autowired
-//	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UserNotFoundException {

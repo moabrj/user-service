@@ -45,7 +45,7 @@ public class UserServiceApplication {
 	        	user.setPassword("123456");
 	        	user.setName("ADMIN");
 	        	user.setEmail("admin@admin.com");
-	        	userService.createUser(user, 2);
+	        	userService.createUser(user);
 	        }
 	    };
 

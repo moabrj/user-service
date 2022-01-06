@@ -27,22 +27,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 			.userDetailsService(userDetailsService)
 			.passwordEncoder(passwordEncoder());
 		
-		System.out.println(userDetailsService.loadUserByUsername("admin@admin.com").toString());
-//		PasswordEncoder encoder = passwordEncoder();
-//		    	auth
-//		          .inMemoryAuthentication()
-//		          .withUser("user")
-//		          .password(encoder.encode("password"))
-//		          .roles("USER")
-//		          .and()
-//		          .withUser("admin")
-//		          .password(encoder.encode("admin"))
-//		          .roles("USER", "ADMIN");
+		//System.out.println(userDetailsService.loadUserByUsername("admin@admin.com").toString());
+
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
-		//super.configure(http);
 		http
 	    .csrf().disable()
 	    .authorizeRequests()
