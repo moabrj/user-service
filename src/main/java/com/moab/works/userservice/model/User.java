@@ -15,7 +15,7 @@ import lombok.Data;
 public class User {
 	
 	@Id
-	private ObjectId id;
+	private String id;
 	private String name;
 	private String email; 	
 	private String phone;

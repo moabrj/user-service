@@ -27,4 +27,5 @@ public interface UserService {
 
 	Page<User> getAllUsersWithName(String name, Pageable pageable);
 	
+	void initUser(User user);
 }

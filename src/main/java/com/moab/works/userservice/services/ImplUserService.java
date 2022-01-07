@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.moab.works.userservice.model.Role;
 import com.moab.works.userservice.model.User;
+import com.moab.works.userservice.model.exceptions.UserNotFoundException;
 import com.moab.works.userservice.repository.RoleRepository;
 import com.moab.works.userservice.repository.UserRepository;
 
@@ -50,6 +52,9 @@ public class ImplUserService implements UserService {
 		Optional<User> existing = userRepository.findByEmail(user.getEmail()); //username is setted as email
 		existing.ifPresent(it-> {throw new IllegalArgumentException("user already exists: " + it.getEmail());});
 		
+		if(user.getId() == null)
+			user.setId(new ObjectId().toHexString());
+		
 		user.setPassword(encoder.encode(user.getPassword()));
 		
 		String role = "USER";
@@ -65,12 +70,24 @@ public class ImplUserService implements UserService {
 	
 	@Override
 	public User updateUser(User user) {
+		user.setPassword(encoder.encode(user.getPassword()));
+		String role = "USER";
+		List<Role> roles = user.getRole().stream().collect(Collectors.toList());
+		if(!roles.isEmpty())
+			role = roles.get(0).getRole();
+			
+	    Role userRole = roleRepository.findByRole(role);
+	    user.setRole(new HashSet<>(Arrays.asList(userRole)));
 		return userRepository.save(user);
 	}
 
 	@Override
 	public void deleteUser(String id) {
-		userRepository.deleteById(id);
+		Optional<User> existing = userRepository.findById(id);
+		if(existing.isPresent())
+			userRepository.deleteById(id);
+		else
+			throw new UserNotFoundException();
 	}
 	
 	@Override
@@ -95,6 +112,15 @@ public class ImplUserService implements UserService {
 	@Override
 	public Optional<User> findByEmail(String email) {
 		return userRepository.findByEmail(email);
+	}
+	
+	@Override
+	public void initUser(User user) {
+		user.setId(new ObjectId().toHexString());
+		user.setPassword(encoder.encode(user.getPassword()));
+		Role userRole = roleRepository.findByRole("ADMIN");
+	    user.setRole(new HashSet<>(Arrays.asList(userRole)));
+		userRepository.save(user);
 	}
 
 }
