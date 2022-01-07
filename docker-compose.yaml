@@ -5,10 +5,10 @@ services:
 
   user-service:
    image: user-service
-   ports:
-     - "8000-8000"
    networks:
      - user-service-mongo
+   ports:
+      - 8000:8000
    depends_on:
      - mongo
 

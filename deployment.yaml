@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: user-service-mongo
+spec:
+
+  restartPolicy: Never
+
+  volumes:
+  - name: shared-data
+    emptyDir: {}
+
+  containers:
+
+  - name: user-service
+    image: moabrj/user-service
+    volumeMounts:
+    - name: shared-data
+
+  - name: mongo
+    image: mongo
+    volumeMounts:
+    - name: shared-data
+      mountPath: /pod-data
+    
