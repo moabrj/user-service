@@ -95,6 +95,7 @@ public class ImplUserService implements UserService {
 		var query = new Query().with(pageable);
         final List<Criteria> criteria = new ArrayList<>();
 
+        //To add ohter filters just create if's with new criterias
         if (name != null && !name.isBlank())
             criteria.add(Criteria.where("name").regex(name, "i"));
         

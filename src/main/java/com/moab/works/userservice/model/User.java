@@ -3,7 +3,6 @@ package com.moab.works.userservice.model;
 
 import java.util.Set;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
